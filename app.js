@@ -16,6 +16,7 @@ app.use(bodyParser.json());
 //CORS HEADERS MIDDLEWARE
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Methods","GET,POST, HEAD,OPTIONS,PUT, PATCH, DELETE");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   });
@@ -75,10 +76,10 @@ app.delete('/lists/:id',(req, res) => {
  * GET/lists/:listId/tasks
  * Purpose: Get all tasks in a specific list
  */
-app.get('/lists/:listID/tasks', (req,res) =>{
+app.get('/lists/:listId/tasks', (req,res) =>{
     //We want to return all tasks that belong to a specific lists (specified by listId)
     Task.find({
-        _listId:req.params.listID
+        _listId:req.params.listId
     }).then((tasks) =>{
         res.send(tasks);
     })
@@ -115,12 +116,12 @@ app.patch('/lists/:listsId/tasks/:taskId',(req,res) => {
     Task.findOneAndUpdate
     List.findOneAndRemove({ 
         _id: req.params.taskId,
-        _listId: req.params.listId      
+        _listId: req.params.listId     
     },{
         $set:req.body
     }
 ).then(() =>{
-    res.sendStatus(200);
+    res.send({message: 'Updated Sucessfully.'});
 })
 });
 /**

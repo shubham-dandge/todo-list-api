@@ -34,8 +34,9 @@ app.use(function (req, res, next) {
 // check whether the request has a valid JWT access token
 let authenticate = (req, res, next) => {
     let token = req.header('x-access-token');
-
+    console.log("Authenticate");
     // verify the JWT
+    console.log("Token", token);
     jwt.verify(token, User.getJWTSecret(), (err, decoded) => {
         if (err) {
             // there was an error
@@ -103,12 +104,7 @@ let verifySession = (req, res, next) => {
     })
 }   
 
-
   /**End  MIDDLEWARE */
-
-
-
-
 /* Route Handlers */
 
 /* LIST ROUTES */
@@ -117,12 +113,14 @@ let verifySession = (req, res, next) => {
  * Purpose : Get all Lists
  */
 app.get('/lists', authenticate, (req, res) => {
+    console.log("app.get");
    // we want to return any array of all the lists that belong to the authenticated user
    List.find({
-  //  _userId:req.user_id
+   _userId:req.user_id
    }).then((lists)=>{
     res.send(lists); 
-
+   }).catch((e) => {
+    res.send(e); 
    });
 })
 /**
@@ -154,10 +152,12 @@ app.patch('/lists/:id',(req, res)=>{
         res.sendStatus(200);
     })
 });
+
 app.delete('/lists/:id',(req, res) => {
     //We want to delete the specified list (document with id in th URL)
     List.findOneAndRemove({
-        _id: req.params.id
+        _id: req.params.id,
+        _userId:req.user_id
     }).then((removedListDoc) => {
         res.send(removedListDoc);
 
@@ -170,12 +170,13 @@ app.delete('/lists/:id',(req, res) => {
  * GET/lists/:listId/tasks
  * Purpose: Get all tasks in a specific list
  */
-app.get('/lists/:listId/tasks', (req,res) =>{
+app.get('/lists/:listId/tasks',authenticate, (req,res) =>{
     //We want to return all tasks that belong to a specific lists (specified by listId)
     Task.find({
         _listId:req.params.listId
     }).then((tasks) =>{
         res.send(tasks);
+        console.log(181);
     })
 })
 // app.get('/lists/:listId/tasks/:taskId',(req,res) => {
@@ -193,13 +194,31 @@ app.get('/lists/:listId/tasks', (req,res) =>{
  */
 app.post('/lists/:listId/tasks', (req,res) => {
     // we want to create a new task in a list specified by listId
-    let newTask = new Task({
-        title:req.body.title,
-        _listId:req.params.listId
+    List.findOne({
+        _id: req.params.listId,
+        _userId: req.user_id
+    }).then((user) =>{
+        if(user){
+            //user object is valid
+            //therefore the currently authenticated user can create a new task
+            return true;
+        }
+        //else - the user object is undefined
+        return false;
+    }).then((canCreateTask) => {
+        if (canCreateTask) {
+            let newTask = new Task({
+                title:req.body.title,
+                _listId:req.params.listId
+            })
+            newTask.save().then((newTaskDoc) =>{
+                res.send(newTaskDoc);
+            })
+        }else{
+            res.sendStatus(404);
+        }
     })
-    newTask.save().then((newTaskDoc) =>{
-        res.send(newTaskDoc);
-    })
+    
 })
 /**
  * PATCH /lists/:listId/tasks/:taskId

@@ -7,7 +7,7 @@ mongoose.connect('mongodb+srv://shubhamdandge:shubham16@cluster0.qqsmhwc.mongodb
     console.log("Connected to MongoDB sucessfully :)");
 }).catch((e) => {
     console.log("Error while attempting to connect to MongoDb");
-   // console.log(e);
+   //console.log(e);
 });
 
 //To Prevent deprectation warnings (from MongoDb native Driver)

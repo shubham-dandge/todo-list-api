@@ -33,11 +33,13 @@ app.use(function (req, res, next) {
 });
 // check whether the request has a valid JWT access token
 let authenticate = (req, res, next) => {
-    let token = req.header('x-access-token');
+    const token = req.header('x-access-token');
+  
     console.log("Authenticate");
     // verify the JWT
     console.log("Token", token);
     jwt.verify(token, User.getJWTSecret(), (err, decoded) => {
+        
         if (err) {
             // there was an error
             // jwt is invalid - * DO NOT AUTHENTICATE *
@@ -116,7 +118,7 @@ app.get('/lists', authenticate, (req, res) => {
     console.log("app.get");
    // we want to return any array of all the lists that belong to the authenticated user
    List.find({
-   _userId:req.user_id
+    userId:req.user_id
    }).then((lists)=>{
     res.send(lists); 
    }).catch((e) => {
@@ -131,9 +133,10 @@ app.post('/lists', (req, res) =>{
     //We want to create a new list and return the list document back to the user(which incude the id)
     //THe list information (fields) will be passed in via the JSON request body
     let title = req.body.title;
-
+    let userId = req.body.userId;
     let newList = new List({
-        title
+        title,
+        userId
     });
     newList.save().then((listDoc) =>{
         // the full list document is returned (incl. id)
@@ -299,26 +302,30 @@ app.post('/users', (req, res) => {
 app.post('/users/login',(req, res) => {
     let email = req.body.email;
     let password = req.body.password;
-
+ 
     User.findByCredentials(email, password).then((user) =>{
         console.log('email', email)
         return user.createSession().then((refreshToken)=>{
             //session created sucessfully -refreshToken
             //now we generate an access auth token for the user
-
             return user.generateAccessAuthToken().then((accessToken) =>{
                 //access auth token generated sucessfully, now we return  an object containing the auth token
                 return { accessToken, refreshToken}
 
-            }).catch(err => err);
+            }).catch(err => {
+                console.log('error in createing token');
+            });
         }).then((authTokens)=>{
         //Now we construct and send the response to the user with their auth token in the header and th user object in the body
+        
         res
             .header('x-refresh-token', authTokens.refreshToken)
             .header('x-access-token', authTokens.accessToken)
             .send(user);
         })
+
     }).catch((e) => {
+     
         res.status(400).send(e);
     });
 

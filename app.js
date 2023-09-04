@@ -118,7 +118,7 @@ app.get('/lists', authenticate, (req, res) => {
     console.log("app.get");
    // we want to return any array of all the lists that belong to the authenticated user
    List.find({
-    userId:req.user_id
+      // userId:req.user_id
    }).then((lists)=>{
     res.send(lists); 
    }).catch((e) => {
@@ -133,10 +133,11 @@ app.post('/lists', (req, res) =>{
     //We want to create a new list and return the list document back to the user(which incude the id)
     //THe list information (fields) will be passed in via the JSON request body
     let title = req.body.title;
-    let userId = req.body.userId;
+    console.log(req.body)
+    
     let newList = new List({
         title,
-        userId
+        _userId: req.user_id
     });
     newList.save().then((listDoc) =>{
         // the full list document is returned (incl. id)
@@ -158,6 +159,8 @@ app.patch('/lists/:id',(req, res)=>{
 
 app.delete('/lists/:id',(req, res) => {
     //We want to delete the specified list (document with id in th URL)
+    //console.log(req.params.id);
+    //console.log(req.user_id); 
     List.findOneAndRemove({
         _id: req.params.id,
         _userId:req.user_id
@@ -179,17 +182,9 @@ app.get('/lists/:listId/tasks',authenticate, (req,res) =>{
         _listId:req.params.listId
     }).then((tasks) =>{
         res.send(tasks);
-        console.log(181);
+       // console.log(181);
     })
 })
-// app.get('/lists/:listId/tasks/:taskId',(req,res) => {
-//     Task.findOne({
-//         _id:req.params.taskId,
-//     _listId:req.params.listId        
-//     }).then((task) =>{
-//         res.send(task);
-//     })
-// });
 
 /**
  * POST /lists/:listId/tasks
@@ -352,7 +347,7 @@ app.get('/users/me/access-token', verifySession, (req, res) =>{
     //we know that the user caller is authenticated and we have the user id and user object available to us
     req.userObject.generateAccessAuthToken().then((accessToken) => {
         res.header('x-access-token',accessToken).send({ accessToken }); 
-        console.log("296");
+        //console.log("296");
     }).catch((e) => {
         res.status(400).send(e);
     });

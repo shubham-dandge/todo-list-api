@@ -129,7 +129,7 @@ app.get('/lists', authenticate, (req, res) => {
  * POST /lists
  * Purpose : Create a List
  */
-app.post('/lists', (req, res) =>{
+app.post('/lists', authenticate, (req, res) =>{
     //We want to create a new list and return the list document back to the user(which incude the id)
     //THe list information (fields) will be passed in via the JSON request body
     let title = req.body.title;
@@ -137,7 +137,7 @@ app.post('/lists', (req, res) =>{
     
     let newList = new List({
         title,
-        _userId: req.user_id
+        userId: req.user_id
     });
     newList.save().then((listDoc) =>{
         // the full list document is returned (incl. id)

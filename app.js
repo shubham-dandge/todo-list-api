@@ -118,7 +118,7 @@ app.get('/lists', authenticate, (req, res) => {
     console.log("app.get");
    // we want to return any array of all the lists that belong to the authenticated user
    List.find({
-      // userId:req.user_id
+      userId:req.user_id
    }).then((lists)=>{
     res.send(lists); 
    }).catch((e) => {
@@ -194,7 +194,7 @@ app.post('/lists/:listId/tasks',authenticate, (req,res) => {
     // we want to create a new task in a list specified by listId
     List.findOne({
         _id: req.params.listId,
-        _userId: req.user_id
+        userId: req.user_id
     }).then((list) =>{
         if(list){
             //list object with sepcified conditions was found
